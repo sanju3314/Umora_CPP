@@ -1,228 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umora Courage Points</title>
-    <style>
-        :root {
-            --bg: #121212;
-            --card: #1E1E1E;
-            --text: #ffffff;
-            --accent: #FF4C4C; /* Umora Red */
-            --green: #4CAF50; --blue: #2196F3; --gold: #FFC107; --orange: #FF9800; --red: #F44336;
-        }
-        body { font-family: 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        /* Typography */
-        h1, h2 { text-transform: uppercase; letter-spacing: 1px; }
-        .sub-text { font-size: 0.9em; color: #888; }
-        
-        /* Cards */
-        .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        /* Inputs */
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #2C2C2C; border: none; color: white; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: var(--text); color: black; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: 0.2s; }
-        button:hover { background: #ddd; }
-        
-        /* Dashboard Specifics */
-        .tier-card { text-align: center; border: 2px solid var(--green); }
-        .tier-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; background: var(--green); color: white; font-weight: bold; margin-bottom: 10px; }
-        .points-display { font-size: 3em; font-weight: bold; margin: 10px 0; }
-        
-        /* Leaderboard */
-        .leader-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
-        .leader-row:last-child { border: none; }
-        
-        /* Hidden States */
-        .hidden { display: none; }
-    </style>
+  <title>Umora Courage Points</title>
+  <script src="app.js"></script>
 </head>
-<body>
+<body onload="loadTasks()">
 
-<div class="container">
+<h2>Submit Completed Task</h2>
 
-    <div id="login-screen">
-        <h1>Umora Courage</h1>
-        <p class="sub-text">"Points don't flatter me — they protect the company."</p>
-        
-        <div class="card">
-            <h3>Employee Identification</h3>
-            <input type="text" id="reg-name" placeholder="Full Name">
-            <input type="text" id="reg-dept" placeholder="Department">
-            <input type="text" id="reg-report" placeholder="Reporting To">
-            <label class="sub-text">Date of Joining</label>
-            <input type="date" id="reg-doj">
-            <button onclick="registerUser()">Enter System</button>
-        </div>
-    </div>
+<label>Employee ID</label><br>
+<input id="empId" /><br><br>
 
-    <div id="dashboard-screen" class="hidden">
-        <div class="card tier-card" id="my-tier-card">
-            <span class="tier-badge" id="display-tier">INITIATOR</span>
-            <div class="points-display" id="display-points">0</div>
-            <div class="sub-text">Current Courage Points</div>
-        </div>
+<label>Select Task</label><br>
+<select id="taskSelect"></select><br><br>
 
-        <button onclick="showTaskForm()" style="background: var(--accent); color: white; margin-bottom: 20px;">+ Claim Courage Points</button>
+<label>Date of Completion</label><br>
+<input type="date" id="date" /><br><br>
 
-        <div class="card">
-            <h3>🏆 Top 3 Leaders</h3>
-            <div id="leaderboard-list">
-                <div class="sub-text">Loading leaders...</div>
-            </div>
-        </div>
-    </div>
+<label>Context</label><br>
+<textarea id="context"></textarea><br><br>
 
-    <div id="task-screen" class="hidden">
-        <button onclick="closeTaskForm()" style="background:transparent; color: #888; width: auto; padding: 5px;">&larr; Back</button>
-        <h2>Log Action</h2>
-        <div class="card">
-            <label class="sub-text">Category</label>
-            <select id="task-cat" onchange="updatePointsVal()">
-                <option value="A" data-pts="300">A. Authority Neutralization (Disagree)</option>
-                <option value="B" data-pts="400">B. Ownership (Fix Problem)</option>
-                <option value="C" data-pts="500">C. People Mgmt (Resolve Conflict)</option>
-                <option value="D" data-pts="300">D. Identity (Speak Confidently)</option>
-                <option value="E" data-pts="400">E. Experimentation (Try New)</option>
-                <option value="F" data-pts="600">F. Power Reversal (Critique Decision)</option>
-                <option value="G" data-pts="300">G. Fun + Bonding (Roast Team)</option>
-            </select>
-            
-            <label class="sub-text">Context (Max 500 words)</label>
-            <textarea id="task-context" rows="4" placeholder="Describe exactly what happened..."></textarea>
-            
-            <label class="sub-text">Proof (Google Drive Link)</label>
-            <input type="text" id="task-link" placeholder="Paste link to image/video...">
-            
-            <p style="text-align: right; color: var(--accent); font-weight: bold;">Est. Points: <span id="pts-val">300</span></p>
-            
-            <button onclick="submitTask()">Submit for Approval</button>
-        </div>
-    </div>
+<label>Media Link (Google Drive)</label><br>
+<input id="mediaLink" /><br><br>
 
-</div>
-
-<script>
-    // REPLACE THIS WITH YOUR DEPLOYED WEB APP URL FROM STEP 2
-    const API_URL = 'https://script.google.com/macros/s/AKfycbz7m07aXIRMAhOe1IdpvUYgVgN5C6ON-K8T8FxeoXsCQVZvfqz_cmeISg_lAcYi2DOE/execE';
-    
-    let currentUser = "";
-
-    function registerUser() {
-        const name = document.getElementById('reg-name').value;
-        const dept = document.getElementById('reg-dept').value;
-        const report = document.getElementById('reg-report').value;
-        const doj = document.getElementById('reg-doj').value;
-
-        if(!name || !dept) return alert("Please fill details");
-
-        currentUser = name;
-        
-        // Save locally for demo feel
-        localStorage.setItem("umoraUser", name);
-
-        // Send to Sheet
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ type: 'register', name, dept, report, doj })
-        })
-        .then(res => res.json())
-        .then(data => {
-            loadDashboard();
-        });
-    }
-
-    function loadDashboard() {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('task-screen').classList.add('hidden');
-        document.getElementById('dashboard-screen').classList.remove('hidden');
-        
-        // Load Leaderboard
-        fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById('leaderboard-list');
-            list.innerHTML = "";
-            data.forEach((user, index) => {
-                let medal = index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
-                list.innerHTML += `<div class="leader-row"><span>${medal} ${user.name}</span> <span>${user.points} pts</span></div>`;
-                
-                // If this is the current user, update their display
-                if(user.name === currentUser) {
-                    document.getElementById('display-points').innerText = user.points;
-                    document.getElementById('display-tier').innerText = user.tier;
-                    updateTierColor(user.tier);
-                }
-            });
-        });
-    }
-
-    function updatePointsVal() {
-        const select = document.getElementById('task-cat');
-        const pts = select.options[select.selectedIndex].getAttribute('data-pts');
-        document.getElementById('pts-val').innerText = pts;
-    }
-
-    function showTaskForm() {
-        document.getElementById('dashboard-screen').classList.add('hidden');
-        document.getElementById('task-screen').classList.remove('hidden');
-    }
-
-    function closeTaskForm() {
-        document.getElementById('task-screen').classList.add('hidden');
-        document.getElementById('dashboard-screen').classList.remove('hidden');
-    }
-
-    function submitTask() {
-        const cat = document.getElementById('task-cat').value;
-        const context = document.getElementById('task-context').value;
-        const link = document.getElementById('task-link').value;
-        const select = document.getElementById('task-cat');
-        const pts = select.options[select.selectedIndex].getAttribute('data-pts');
-
-        if(!context) return alert("Context is required");
-
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ 
-                type: 'submit_task', 
-                name: currentUser, 
-                category: cat, 
-                context: context, 
-                link: link,
-                points: pts
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert("Submitted for Admin Approval");
-            closeTaskForm();
-        });
-    }
-
-    function updateTierColor(tier) {
-        const card = document.getElementById('my-tier-card');
-        const badge = document.getElementById('display-tier');
-        let color = "#4CAF50"; // Green default
-        
-        if(tier.includes("CONTRIBUTOR")) color = "#2196F3"; // Blue
-        if(tier.includes("CHALLENGER")) color = "#FFC107"; // Gold
-        if(tier.includes("OWNER")) color = "#FF9800"; // Orange
-        if(tier.includes("STEWARD")) color = "#F44336"; // Red
-        
-        card.style.borderColor = color;
-        badge.style.background = color;
-    }
-
-    // Auto-login if saved
-    if(localStorage.getItem("umoraUser")) {
-        currentUser = localStorage.getItem("umoraUser");
-        loadDashboard();
-    }
-</script>
+<button onclick="submitTask()">Submit Task</button>
 
 </body>
 </html>
